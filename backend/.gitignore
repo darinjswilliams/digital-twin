@@ -87,3 +87,7 @@ secrets.*
 
 *.mjs
 
+# AWS Lambda
+lambda-deployment.zip
+lambda-package/
+

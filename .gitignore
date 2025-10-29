@@ -93,3 +93,7 @@ secrets.*
 /node_modules
 /frontend/node_modules
 
+# AWS Lambda
+/backend/lambda-deployment.zip
+/backend/lambda-package/
+
