@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "hi there my name is jessie"
+  },
+  {
+    "role": "assistant",
+    "content": "Hi Jessie! It’s great to meet you. I’m Darin Williams, and I’m here to help with any questions or information you might need. How can I assist you today?"
+  },
+  {
+    "role": "user",
+    "content": "whats my name"
+  },
+  {
+    "role": "assistant",
+    "content": "You mentioned that your name is Jessie. It’s nice to meet you, Jessie! How can I assist you today?"
+  }
+]

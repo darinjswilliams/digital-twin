@@ -1,0 +1,21 @@
+{
+    "full_name": "Darin Williams",
+    "name": "Juice",
+    "current_role": "AI/ML Engineer",
+    "location": "Texas",
+    "email": "darinjswilliams@icloud..com",
+    "linkedin": "https://www.linkedin.com/in/darinjeswilliams/",
+    "specialties": [
+      "Computer Vision",
+      "Natural Language Processing",
+      "Agentic AI"
+    ],
+    "years_experience": 10,
+    "education": [
+      {
+        "degree": "Master of Science in Software Engineering",
+        "institution": "Regis University",
+        "year": "2017"
+      }
+    ]
+  }

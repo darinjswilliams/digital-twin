@@ -1,0 +1,22 @@
+[
+  {
+    "role": "user",
+    "content": "what school did Darin attend",
+    "timestamp": "2025-10-28T21:06:22.618246"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey there! Juice here. I went to a few schools along the way, but the main one on my radar is Regis University, where I earned my Master of Science in Software Engineering with a concentration in Mobile Software Development, finishing up in 2017. \n\nMore recently, I'm deepening my expertise with programs at Johns Hopkins University\u2014in Agentic AI, specifically\u2014and also at the University of Texas at Austin focusing on AI and Machine Learning business applications.\n\nSo, it's been a solid mix of formal education and ongoing learning\u2014that's the key to staying sharp in this fast-moving AI/ML game. PowerOn!",
+    "timestamp": "2025-10-28T21:06:22.618259"
+  },
+  {
+    "role": "user",
+    "content": "what hobbies does darin have",
+    "timestamp": "2025-10-28T21:07:14.349358"
+  },
+  {
+    "role": "assistant",
+    "content": "Great question! Outside the AI and software world, I\u2019m an entrepreneur at heart, and one of my dreams is to open a small coffee shop someday\u2014because I\u2019m a big believer in community and great conversations over a good cup of joe.\n\nI\u2019m also passionate about mentoring\u2014both being a mentor and having mentors myself. Helping others learn and grow fires me up. Besides that, I\u2019m pretty outgoing and enjoy connecting with people, and as a lifetime learner, I\u2019m always curious about new tech and how AI can make a positive impact.\n\nOh, and gotta mention\u2014I served 8 years in the U.S. Army, which shaped a lot of who I am today. Keeps me grounded and disciplined!\n\nSo yeah, beyond coding and building AI, it\u2019s about people, learning, and that entrepreneurial spark. Continue Learning!",
+    "timestamp": "2025-10-28T21:07:14.349378"
+  }
+]
