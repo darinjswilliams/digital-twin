@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from typing import Optional, List, Dict
@@ -28,8 +27,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize Bedrock client
+bedrock_client = boto3.client(
+    service_name="bedrock-runtime", 
+    region_name=os.getenv("DEFAULT_AWS_REGION", "us-east-1")
+)
+
+# Bedrock model selection
+# Available models:
+# - amazon.nova-micro-v1:0  (fastest, cheapest)
+# - amazon.nova-lite-v1:0   (balanced - default)
+# - amazon.nova-pro-v1:0    (most capable, higher cost)
+# Remember the Heads up: you might need to add us. or eu. prefix to the below model id
+BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-lite-v1:0")
 
 # Memory storage configuration
 USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
@@ -108,7 +118,123 @@ def save_conversation(session_id: str, messages: List[Dict]):
         with open(file_path, "w") as f:
             json.dump(messages, f, indent=2)
 
-
+def call_bedrock(conversation: List[Dict], user_message: str) -> str:
+    """Call AWS Bedrock with conversation history"""
+    
+    # Get system prompt
+    system_prompt = prompt()
+    
+    # Build messages in Bedrock format
+    messages = []
+    
+    # If this is the first message, incorporate system prompt
+    if not conversation:
+        # First message: combine system prompt with user message
+        combined_message = f"{system_prompt}\n\n{user_message}"
+        messages.append({
+            "role": "user",
+            "content": [{"text": combined_message}]
+        })
+    else:
+        # Add conversation history (last 20 messages = 10 exchanges)
+        for msg in conversation[-20:]:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            
+            # Skip if role is invalid
+            if role not in ["user", "assistant"]:
+                continue
+            
+            messages.append({
+                "role": role,
+                "content": [{"text": str(content)}]
+            })
+        
+        # Add current user message
+        messages.append({
+            "role": "user",
+            "content": [{"text": user_message}]
+        })
+    
+    # Ensure messages alternate between user and assistant
+    # Bedrock requires: user -> assistant -> user -> assistant
+    fixed_messages = []
+    last_role = None
+    
+    for msg in messages:
+        current_role = msg["role"]
+        
+        if last_role == current_role:
+            # Same role twice in a row - merge messages
+            if fixed_messages:
+                fixed_messages[-1]["content"][0]["text"] += "\n\n" + msg["content"][0]["text"]
+        else:
+            fixed_messages.append(msg)
+            last_role = current_role
+    
+    # Must start with user
+    if fixed_messages and fixed_messages[0]["role"] != "user":
+        fixed_messages.insert(0, {
+            "role": "user",
+            "content": [{"text": system_prompt}]
+        })
+    
+    # Must end with user (for Bedrock to respond)
+    if fixed_messages and fixed_messages[-1]["role"] != "user":
+        fixed_messages.append({
+            "role": "user",
+            "content": [{"text": user_message}]
+        })
+    
+    try:
+        print(f"Sending {len(fixed_messages)} messages to Bedrock")
+        
+        # Call Bedrock using the converse API
+        response = bedrock_client.converse(
+            modelId=BEDROCK_MODEL_ID,
+            messages=fixed_messages,
+            inferenceConfig={
+                "maxTokens": 2000,
+                "temperature": 0.7,
+                "topP": 0.9
+            }
+        )
+        
+        # Extract the response text
+        return response["output"]["message"]["content"][0]["text"]
+        
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        error_message = e.response['Error'].get('Message', str(e))
+        
+        print(f"Bedrock error: {error_code} - {error_message}")
+        
+        # Log the messages that caused the error
+        print("Messages sent to Bedrock:")
+        for i, msg in enumerate(fixed_messages):
+            print(f"  {i}: {msg['role']} - {msg['content'][0]['text'][:100]}...")
+        
+        if error_code == 'ValidationException':
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid message format for Bedrock: {error_message}"
+            )
+        elif error_code == 'AccessDeniedException':
+            raise HTTPException(
+                status_code=403, 
+                detail="Access denied to Bedrock model. Check AWS credentials and model access."
+            )
+        elif error_code == 'ResourceNotFoundException':
+            raise HTTPException(
+                status_code=404,
+                detail=f"Bedrock model not found: {BEDROCK_MODEL_ID}"
+            )
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Bedrock error: {error_message}"
+            )
+            
 @app.get("/")
 async def root():
     return {
@@ -120,7 +246,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "use_s3": USE_S3}
+    return {"status": "healthy", "use_s3": USE_S3, "bedrock_model": BEDROCK_MODEL_ID}
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -132,25 +258,10 @@ async def chat(request: ChatRequest):
         # Load conversation history
         conversation = load_conversation(session_id)
 
-        # Build messages for OpenAI
-        messages = [{"role": "system", "content": prompt()}]
+        # Call Bedrock for response
+        assistant_response = call_bedrock(conversation, request.message)
 
-        # Add conversation history (keep last 10 messages for context window)
-        for msg in conversation[-10:]:
-            messages.append({"role": msg["role"], "content": msg["content"]})
-
-        # Add current user message
-        messages.append({"role": "user", "content": request.message})
-
-        # Call OpenAI API
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini", 
-            messages=messages
-        )
-
-        assistant_response = response.choices[0].message.content
-
-        # Update conversation history
+       # Update conversation history
         conversation.append(
             {"role": "user", "content": request.message, "timestamp": datetime.now().isoformat()}
         )
@@ -167,6 +278,8 @@ async def chat(request: ChatRequest):
 
         return ChatResponse(response=assistant_response, session_id=session_id)
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

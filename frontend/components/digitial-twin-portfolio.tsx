@@ -68,7 +68,7 @@ export default function DigitalTwin() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`https://z1qltw7pe9.execute-api.us-east-1.amazonaws.com/chat`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
@@ -157,8 +157,7 @@ export default function DigitalTwin() {
     try {
       // Show loading state (you can add a spinner if you have one)
       setIsSubmitting(true); // Add this state: const [isSubmitting, setIsSubmitting] = useState(false);
-  
-      const apiUrl = 'https://z1qltw7pe9.execute-api.us-east-1.amazonaws.com';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/send-resume-request`, {
         method: 'POST',
         headers: {
