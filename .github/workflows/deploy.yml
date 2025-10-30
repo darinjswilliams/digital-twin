@@ -69,6 +69,11 @@ jobs:
           ./scripts/deploy.sh ${{ github.event.inputs.environment || 'dev' }}
         env:
           AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          TF_VAR_sender_name: ${{ secrets.SENDER_NAME }}
+          TF_VAR_sender_email: ${{ secrets.SENDER_EMAIL }}
+          TF_VAR_recipient_email: ${{ secrets.RECIPIENT_EMAIL }}
+          TF_VAR_brevo_api_url: ${{ secrets.BREVO_API_URL }}
+          TF_VAR_brevo_api_key: ${{ secrets.BREVO_API_KEY }}      
           
       - name: Get Deployment URLs
         id: deploy_outputs
