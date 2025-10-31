@@ -73,7 +73,7 @@ jobs:
           TF_VAR_sender_email: ${{ secrets.SENDER_EMAIL }}
           TF_VAR_recipient_email: ${{ secrets.RECIPIENT_EMAIL }}
           TF_VAR_brevo_api_url: ${{ secrets.BREVO_API_URL }}
-          TF_VAR_brevo_api_key: ${{ secrets.BREVO_API_KEY }}      
+          TF_VAR_brevo_api_key: ${{ secrets.BREVO_API_KEY }} 
           
       - name: Get Deployment URLs
         id: deploy_outputs

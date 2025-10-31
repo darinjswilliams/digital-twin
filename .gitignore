@@ -98,15 +98,12 @@ secrets.*
 /backend/lambda-package/
 
 # Terraform
+# Terraform
 *.tfstate
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
 terraform.tfstate.d/
-!terraform.tfvars
-!terraform.tfvars
-terraform/terraform.tfvars
-terraform/prod.tfvars
 *.tfvars.secret
 
 

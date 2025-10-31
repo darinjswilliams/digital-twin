@@ -1,4 +1,4 @@
-import Twin from '@/components/twin';
+import Twin from '@/components/digitial-twin-portfolio';
 
 export default function Home() {
   return (
