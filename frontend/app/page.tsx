@@ -12,7 +12,7 @@ export default function Home() {
             Deploy your Digital Twin to the cloud
           </p>
 
-          <div className="h-[1000px]">
+          <div className="h-[900px]">
             <Twin />
           </div>
 
